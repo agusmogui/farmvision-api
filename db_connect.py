@@ -1,4 +1,4 @@
-import pyodbc
+import pymssql
 import os
 
 def get_connection():
@@ -7,16 +7,15 @@ def get_connection():
     username = os.getenv("DB_USER")
     password = os.getenv("DB_PASS")
 
-    conn = pyodbc.connect(
-        f'DRIVER={{ODBC Driver 17 for SQL Server}};'
-        f'SERVER={server};'
-        f'DATABASE={database};'
-        f'UID={username};'
-        f'PWD={password}'
+    conn = pymssql.connect(
+        server=server,
+        user=username,
+        password=password,
+        database=database
     )
     return conn
 
-# Opcional: test de conexión local
+# Test de conexión si se ejecuta directamente
 if __name__ == "__main__":
     try:
         conn = get_connection()
@@ -24,8 +23,9 @@ if __name__ == "__main__":
         cursor.execute("SELECT name FROM sys.tables")
         print("Tablas encontradas:")
         for row in cursor.fetchall():
-            print("-", row.name)
+            print("-", row[0])
         cursor.close()
         conn.close()
     except Exception as e:
         print("❌ Error al conectar:", e)
+
