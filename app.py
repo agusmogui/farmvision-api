@@ -62,9 +62,10 @@ def cotizar():
         "precio_final": precio_final,
         "ganancia_aplicada": f"{int(ganancia * 100)}%"
     })
-
+    
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 8080))  # Railway setea la var PORT automáticamente
     app.run(host='0.0.0.0', port=port)
+
 
