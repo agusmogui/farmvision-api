@@ -7,6 +7,11 @@ def get_connection():
     username = os.getenv("DB_USER")
     password = os.getenv("DB_PASS")
 
+    print(f"🔍 server: {server}")
+    print(f"🔍 database: {database}")
+    print(f"🔍 username: {username}")
+    print(f"🔍 password: {'*' * len(password) if password else 'None'}")
+
     conn = pymssql.connect(
         server=server,
         user=username,
@@ -14,6 +19,7 @@ def get_connection():
         database=database
     )
     return conn
+
 
 # Test de conexión si se ejecuta directamente
 if __name__ == "__main__":
