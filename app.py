@@ -1,11 +1,6 @@
 from flask import Flask, jsonify, request
 from db_connect import get_connection
 import os
-print("🧪 Cargando variables de entorno:")
-print("DB_SERVER =", os.getenv("DB_SERVER"))
-print("DB_NAME =", os.getenv("DB_NAME"))
-print("DB_USER =", os.getenv("DB_USER"))
-print("DB_PASS =", os.getenv("DB_PASS"))
 
 app = Flask(__name__)
 
@@ -47,6 +42,8 @@ def get_componentes():
 def cotizar():
     try:
         datos = request.json
+        print("📦 Datos recibidos:", datos)
+
         id_chasis = datos.get("id_chasis")
         componentes = datos.get("componentes", [])
         ganancia = datos.get("ganancia", 0.20)
@@ -55,21 +52,21 @@ def cotizar():
         cursor = conn.cursor()
 
         # Precio del chasis
-        cursor.execute("SELECT precio_base FROM chasis WHERE id_chasis = %s", (id_chasis,))
+        cursor.execute("SELECT precio_base FROM chasis WHERE id_chasis = ?", (id_chasis,))
         row = cursor.fetchone()
         if not row:
             return jsonify({"error": "Chasis no encontrado"}), 404
-        precio_total = row[0]
+        precio_total = float(row[0])
 
         # Precios de los componentes
         if componentes:
-            placeholders = ",".join(["%s"] * len(componentes))
+            placeholders = ",".join(["?"] * len(componentes))
             cursor.execute(
                 f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({placeholders})",
-                componentes
+                tuple(componentes)
             )
             comp_total = cursor.fetchone()[0] or 0
-            precio_total += comp_total
+            precio_total += float(comp_total)
 
         # Aplicar ganancia
         precio_final = round(precio_total * (1 + ganancia), 2)
@@ -86,6 +83,5 @@ def cotizar():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 8080))  # Railway configura esta variable automáticamente
+    port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
