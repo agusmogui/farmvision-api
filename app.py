@@ -4,6 +4,13 @@ import os
 
 app = Flask(__name__)
 
+# Debug variables de entorno
+print("🧪 Cargando variables de entorno:")
+print("DB_SERVER =", os.getenv("DB_SERVER"))
+print("DB_NAME =", os.getenv("DB_NAME"))
+print("DB_USER =", os.getenv("DB_USER"))
+print("DB_PASS =", os.getenv("DB_PASS"))
+
 @app.route("/")
 def home():
     return "🚜 FarmVision API Activa"
@@ -51,21 +58,20 @@ def cotizar():
         conn = get_connection()
         cursor = conn.cursor()
 
-        # Precio del chasis
-        cursor.execute("SELECT precio_base FROM chasis WHERE id_chasis = ?", (id_chasis,))
+        # Obtener precio base del chasis
+        cursor.execute("SELECT precio_base FROM chasis WHERE id_chasis = %d", (id_chasis,))
         row = cursor.fetchone()
         if not row:
             return jsonify({"error": "Chasis no encontrado"}), 404
         precio_total = float(row[0])
 
-            # Sumar precios de componentes
+        # Sumar precios de componentes (armando SQL seguro)
         if componentes:
-            placeholders = ",".join(["%d"] * len(componentes))  # <- cambiar ? por %d
-            query = f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({placeholders})"
-            cursor.execute(query, tuple(componentes))
+            id_str = ",".join(str(int(c)) for c in componentes)
+            query = f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({id_str})"
+            cursor.execute(query)
             comp_total = cursor.fetchone()[0] or 0
-            precio_total += comp_total
-
+            precio_total += float(comp_total)
 
         # Aplicar ganancia
         precio_final = round(precio_total * (1 + ganancia), 2)
