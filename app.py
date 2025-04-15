@@ -65,7 +65,7 @@ def cotizar():
             return jsonify({"error": "Chasis no encontrado"}), 404
         precio_total = float(row[0])
 
-        # Sumar precios de componentes (armando SQL seguro)
+        # Sumar precios de componentes
         if componentes:
             id_str = ",".join(str(int(c)) for c in componentes)
             query = f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({id_str})"
@@ -77,9 +77,14 @@ def cotizar():
         precio_final = round(precio_total * (1 + ganancia), 2)
 
         conn.close()
+
+        # Formatear con punto de miles y coma decimal
+        def formato_argentino(valor):
+            return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
         return jsonify({
-            "precio_base": precio_total,
-            "precio_final": precio_final,
+            "precio_base": formato_argentino(precio_total),
+            "precio_final": formato_argentino(precio_final),
             "ganancia_aplicada": f"{int(ganancia * 100)}%"
         })
 
