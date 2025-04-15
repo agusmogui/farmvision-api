@@ -58,15 +58,14 @@ def cotizar():
             return jsonify({"error": "Chasis no encontrado"}), 404
         precio_total = float(row[0])
 
-        # Precios de los componentes
+            # Sumar precios de componentes
         if componentes:
-            placeholders = ",".join(["?"] * len(componentes))
-            cursor.execute(
-                f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({placeholders})",
-                tuple(componentes)
-            )
+            placeholders = ",".join(["%d"] * len(componentes))  # <- cambiar ? por %d
+            query = f"SELECT SUM(costo_componente) FROM componentes WHERE id_componente IN ({placeholders})"
+            cursor.execute(query, tuple(componentes))
             comp_total = cursor.fetchone()[0] or 0
-            precio_total += float(comp_total)
+            precio_total += comp_total
+
 
         # Aplicar ganancia
         precio_final = round(precio_total * (1 + ganancia), 2)
