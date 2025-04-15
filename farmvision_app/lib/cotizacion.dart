@@ -28,75 +28,44 @@ class _CotizacionScreenState extends State<CotizacionScreen> {
   }
 
   Future<void> fetchChasis() async {
-    try {
-      final res = await http.get(Uri.parse('$baseUrl/chasis'));
-      if (res.statusCode == 200) {
-        setState(() {
-          chasisList = json.decode(res.body);
-        });
-      }
-    } catch (e) {
-      print("❌ Error al obtener chasis: $e");
+    final res = await http.get(Uri.parse('$baseUrl/chasis'));
+    if (res.statusCode == 200) {
+      setState(() {
+        chasisList = json.decode(res.body);
+      });
     }
   }
 
   Future<void> fetchComponentes() async {
-    try {
-      final res = await http.get(Uri.parse('$baseUrl/componentes'));
-      if (res.statusCode == 200) {
-        setState(() {
-          componentesList = json.decode(res.body);
-        });
-      }
-    } catch (e) {
-      print("❌ Error al obtener componentes: $e");
+    final res = await http.get(Uri.parse('$baseUrl/componentes'));
+    if (res.statusCode == 200) {
+      setState(() {
+        componentesList = json.decode(res.body);
+      });
     }
   }
 
   Future<void> cotizar() async {
     if (chasisSeleccionado == null || componentesSeleccionados.isEmpty) return;
 
-    try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/cotizar'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          "id_chasis": chasisSeleccionado,
-          "componentes": componentesSeleccionados.toList(),
-          "ganancia": 0.2,
-        }),
-      );
+    final res = await http.post(
+      Uri.parse('$baseUrl/cotizar'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "id_chasis": chasisSeleccionado,
+        "componentes": componentesSeleccionados.toList(),
+        "ganancia": 0.2, // 20%
+      }),
+    );
 
-      if (res.statusCode == 200) {
-        final data = json.decode(res.body);
-        setState(() {
-          precioFinal = data['precio_final'];
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Error al cotizar")),
-        );
-      }
-    } catch (e) {
-      print("❌ Error en cotización: $e");
+    if (res.statusCode == 200) {
+      final data = json.decode(res.body);
+      setState(() {
+        precioFinal = data['precio_final'];
+      });
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error de conexión: $e")),
-      );
-    }
-  }
-
-  Future<void> testPing() async {
-    try {
-      final res = await http.get(Uri.parse('$baseUrl/chasis'));
-      print("📶 Status: ${res.statusCode}");
-      print("📦 Body: ${res.body}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Conexión OK: ${res.statusCode}")),
-      );
-    } catch (e) {
-      print("❌ Error de conexión: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        const SnackBar(content: Text("Error al cotizar")),
       );
     }
   }
@@ -149,18 +118,9 @@ class _CotizacionScreenState extends State<CotizacionScreen> {
                 }).toList(),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: testPing,
-                  child: const Text("Test de conexión"),
-                ),
-                ElevatedButton(
-                  onPressed: cotizar,
-                  child: const Text("Cotizar"),
-                ),
-              ],
+            ElevatedButton(
+              onPressed: cotizar,
+              child: const Text("Cotizar"),
             ),
             if (precioFinal != null)
               Padding(
