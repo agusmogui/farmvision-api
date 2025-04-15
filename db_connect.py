@@ -2,15 +2,19 @@ import pymssql
 import os
 
 def get_connection():
+    import os
     server = os.getenv("DB_SERVER")
     database = os.getenv("DB_NAME")
     username = os.getenv("DB_USER")
     password = os.getenv("DB_PASS")
 
-    print(f"🔍 server: {server}")
-    print(f"🔍 database: {database}")
-    print(f"🔍 username: {username}")
-    print(f"🔍 password: {'*' * len(password) if password else 'None'}")
+    if not all([server, database, username, password]):
+        raise ValueError("❌ Variables de entorno no cargadas correctamente")
+
+    print("🔍 server:", server)
+    print("🔍 database:", database)
+    print("🔍 username:", username)
+    print("🔍 password:", "*" * len(password))
 
     conn = pymssql.connect(
         server=server,
@@ -19,6 +23,7 @@ def get_connection():
         database=database
     )
     return conn
+
 
 
 # Test de conexión si se ejecuta directamente
